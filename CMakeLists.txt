@@ -33,6 +33,9 @@ set_project_warnings(project_warnings)
 include(Sanitizers)
 enable_sanitizers(project_options)
 
+# add the formatting target
+include(Formatters)
+
 # enable doxygen
 include(Doxygen)
 enable_doxygen()
@@ -46,7 +49,11 @@ include_directories(${INCLUDE_DIR})
 include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
  
 file(GLOB_RECURSE PROJECT_SOURCE_FILES "${PROJECT_SOURCE_DIR}/${SOURCE_DIR}/*pp")
- 
+file(GLOB_RECURSE PROJECT_HEADER_FILES "${PROJECT_SOURCE_DIR}/${INCLUDE_DIR}/*pp")
+list(APPEND PROJECT_CODE_FILES ${PROJECT_SOURCE_FILES})
+list(APPEND PROJECT_CODE_FILES ${PROJECT_HEADER_FILES})
+add_format_target(${PROJECT_CODE_FILES})
+
 add_executable(Tank ${PROJECT_SOURCE_FILES})
 target_link_libraries(Tank project_warnings project_options ${EXTERNAL_LIBRARIES})
 add_dependencies(Tank ${EXTERNAL_DEPENDENCIES})
