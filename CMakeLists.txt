@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(Tank CXX)
 
 set(MODULE_DIR ${PROJECT_SOURCE_DIR}/cmake)
@@ -36,6 +36,9 @@ enable_sanitizers(project_options)
 # enable doxygen
 include(Doxygen)
 enable_doxygen()
+
+# allow for static analysis options
+include(StaticAnalyzers)
 
 include(FetchSFML)
 
