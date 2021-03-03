@@ -29,8 +29,13 @@ include(Cache)
 include(CompilerWarnings)
 set_project_warnings(project_warnings)
 
+# set sanitizer options if supported
 include(Sanitizers)
 enable_sanitizers(project_options)
+
+# enable doxygen
+include(Doxygen)
+enable_doxygen()
 
 include(FetchSFML)
 
