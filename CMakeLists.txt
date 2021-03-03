@@ -13,15 +13,15 @@ set(EXTERNAL_LIBRARIES "")
 set(EXTERNAL_INCLUDE_DIRS "")
 set(EXTERNAL_DEPENDENCIES "")
 
+# enable ccache
+include(Cache)
+
 include(FetchSFML)
 
 include_directories(${INCLUDE_DIR})
 include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
-message(STATUS "${EXTERNAL_DEPENDENCIES} ${EXTERNAL_LIBRARIES} ${EXTERNAL_INCLUDE_DIRS}")
 
 file(GLOB_RECURSE PROJECT_SOURCE_FILES "${PROJECT_SOURCE_DIR}/${SOURCE_DIR}/*pp")
-
-message(STATUS ${EXTERNAL_LIBRARIES})
 
 add_executable(Tank ${PROJECT_SOURCE_FILES})
 target_link_libraries(Tank ${EXTERNAL_LIBRARIES})
