@@ -43,6 +43,21 @@ enable_doxygen()
 # allow for static analysis options
 include(StaticAnalyzers)
 
+# Set up some extra Conan dependencies based on our needs before loading Conan
+set(CONAN_PACKAGES "catch2/2.13.4
+                    docopt.cpp/0.6.3
+                    fmt/7.1.3
+                    spdlog/1.8.2")
+
+include(cmake/Conan.cmake)
+run_conan(${CONAN_PACKAGES})
+
+find_package(Catch2)
+find_package(docopt)
+find_package(fmt)
+find_package(spdlog)
+list(APPEND EXTERNAL_LIBRARIES "Catch2::Catch2;docopt::docopt_s;fmt::fmt;spdlog::libspdlog")
+
 include(FetchSFML)
 
 include_directories(${INCLUDE_DIR})
@@ -55,5 +70,5 @@ list(APPEND PROJECT_CODE_FILES ${PROJECT_HEADER_FILES})
 add_format_target(${PROJECT_CODE_FILES})
 
 add_executable(Tank ${PROJECT_SOURCE_FILES})
-target_link_libraries(Tank project_warnings project_options ${EXTERNAL_LIBRARIES})
+target_link_libraries(Tank PRIVATE project_warnings project_options ${EXTERNAL_LIBRARIES})
 add_dependencies(Tank ${EXTERNAL_DEPENDENCIES})
