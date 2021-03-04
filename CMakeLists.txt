@@ -44,10 +44,11 @@ enable_doxygen()
 include(StaticAnalyzers)
 
 # Set up some extra Conan dependencies based on our needs before loading Conan
-set(CONAN_PACKAGES "catch2/2.13.4
-                    docopt.cpp/0.6.3
-                    fmt/7.1.3
-                    spdlog/1.8.2")
+set(CONAN_PACKAGES
+    "catch2/2.13.4
+     docopt.cpp/0.6.3
+     fmt/7.1.3
+     spdlog/1.8.2")
 
 include(cmake/Conan.cmake)
 run_conan(${CONAN_PACKAGES})
@@ -62,7 +63,7 @@ include(FetchSFML)
 
 include_directories(${INCLUDE_DIR})
 include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
- 
+
 file(GLOB_RECURSE PROJECT_SOURCE_FILES "${PROJECT_SOURCE_DIR}/${SOURCE_DIR}/*pp")
 file(GLOB_RECURSE PROJECT_HEADER_FILES "${PROJECT_SOURCE_DIR}/${INCLUDE_DIR}/*pp")
 list(APPEND PROJECT_CODE_FILES ${PROJECT_SOURCE_FILES})
