@@ -3,10 +3,10 @@ project(Tank CXX)
 
 set(MODULE_DIR ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_MODULE_PATH ${MODULE_DIR})
+include(StandardProjectSettings)
 include(PreventInSourceBuilds)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCE_DIR src)
 set(INCLUDE_DIR include)
