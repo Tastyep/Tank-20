@@ -48,7 +48,10 @@ set(CONAN_PACKAGES
     "catch2/2.13.4
      docopt.cpp/0.6.3
      fmt/7.1.3
-     spdlog/1.8.2")
+     spdlog/1.8.2
+     sfml/2.5.1@bincrafters/stable
+     imgui-sfml/2.1@bincrafters/stable
+     ")
 
 include(cmake/Conan.cmake)
 run_conan(${CONAN_PACKAGES})
@@ -57,19 +60,26 @@ find_package(Catch2)
 find_package(docopt)
 find_package(fmt)
 find_package(spdlog)
-list(APPEND EXTERNAL_LIBRARIES "Catch2::Catch2;docopt::docopt_s;fmt::fmt;spdlog::libspdlog")
-
-include(FetchSFML)
+find_package(sfml)
+find_package(ImGui-SFML)
+list(
+  APPEND
+  EXTERNAL_LIBRARIES
+  "Catch2::Catch2;docopt::docopt_s;fmt::fmt;spdlog::libspdlog;sfml::sfml;ImGui-SFML::ImGui-SFML"
+)
 
 include_directories(${INCLUDE_DIR})
 include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
 
-file(GLOB_RECURSE PROJECT_SOURCE_FILES "${PROJECT_SOURCE_DIR}/${SOURCE_DIR}/*pp")
-file(GLOB_RECURSE PROJECT_HEADER_FILES "${PROJECT_SOURCE_DIR}/${INCLUDE_DIR}/*pp")
+file(GLOB_RECURSE PROJECT_SOURCE_FILES
+     "${PROJECT_SOURCE_DIR}/${SOURCE_DIR}/*pp")
+file(GLOB_RECURSE PROJECT_HEADER_FILES
+     "${PROJECT_SOURCE_DIR}/${INCLUDE_DIR}/*pp")
 list(APPEND PROJECT_CODE_FILES ${PROJECT_SOURCE_FILES})
 list(APPEND PROJECT_CODE_FILES ${PROJECT_HEADER_FILES})
 add_format_target(${PROJECT_CODE_FILES})
 
 add_executable(Tank ${PROJECT_SOURCE_FILES})
-target_link_libraries(Tank PRIVATE project_warnings project_options ${EXTERNAL_LIBRARIES})
-add_dependencies(Tank ${EXTERNAL_DEPENDENCIES})
+target_link_libraries(Tank PRIVATE project_warnings project_options
+                                   ${EXTERNAL_LIBRARIES})
+# add_dependencies(Tank ${EXTERNAL_DEPENDENCIES})
