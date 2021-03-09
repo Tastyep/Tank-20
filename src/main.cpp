@@ -2,13 +2,20 @@
 #include "app/ActionController.hpp"
 #include "app/GameState.hpp"
 #include "domain/Action.hpp"
+#include "domain/Concept.hpp"
+#include "domain/Sprite.hpp"
+#include "domain/entity/Factory.hpp"
 #include "interface/Event.hpp"
 #include "interface/Keyboard.hpp"
+#include "interface/Tile.hpp"
 #include "interface/Window.hpp"
+#include "interface/view/Fps.hpp"
+#include "interface/view/GameView.hpp"
 
 #include <chrono>
 #include <spdlog/spdlog.h>
 
+#include <fstream>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -19,9 +26,10 @@ eventToAction(const Interface::Event::Type event) {
   namespace Event = Interface::Event;
   using KeyCode = Interface::Keyboard::KeyCode;
   using Act = Domain::ActionCode;
+
   return std::visit(
       Overloaded{
-          [](const Event::Pressed<Event::Key> &e)
+          [&](const Event::Pressed<Event::Key> &e)
               -> std::optional<Domain::ActionV> {
             switch (e.source.code) {
             case KeyCode::W:
@@ -45,14 +53,60 @@ eventToAction(const Interface::Event::Type event) {
       event);
 }
 
-int main() {
-  using Clock = App::GameState::Clock;
+void loadMap(Domain::Entity::Factory &entFactory, std::string_view path) {
+  std::ifstream file(path.data());
 
+  if (!file.is_open()) {
+    // throw exception
+    return;
+  }
+  std::string              lineData;
+  std::vector<std::string> content;
+  while (getline(file, lineData)) {
+    content.push_back(std::move(lineData));
+  }
+
+  for (size_t y = 0; y < content.size(); ++y) {
+    const auto &line = content[y];
+    for (size_t x = 0; x < line.size(); ++x) {
+      const Domain::Vector2i pos{static_cast<int>(x) * 32,
+                                 static_cast<int>(y) * 32};
+      switch (line[x]) {
+      case '-':
+        entFactory.wall(pos, Domain::Sprite::ID::RLWall);
+        break;
+      case '|':
+        entFactory.wall(pos, Domain::Sprite::ID::UDWall);
+        break;
+      case 'T':
+        entFactory.tank(pos, Domain::Sprite::ID::Tank);
+        break;
+      default:
+        break;
+      }
+    }
+  }
+  file.close();
+}
+
+int main() {
   Interface::Window                 window(1400, 800, "My window");
   App::GameState                    gs{};
   App::Controller::ActionController actionController{};
   const auto                        fps = 60;
   const auto renderDelta = std::chrono::milliseconds(1000) / fps;
+
+  auto tileManager = std::make_shared<Interface::TileManager>();
+  tileManager->load("../asset/asset.png", {0, 0, 384, 64}, 32);
+
+  auto                    registry = std::make_shared<entt::registry>();
+  Domain::Entity::Factory entFactory(registry);
+  loadMap(entFactory, "../asset/map.txt");
+
+  window.addView(
+      std::make_unique<Interface::View::GameView>(registry, tileManager));
+  window.addView(
+      std::make_unique<Interface::View::Fps>(std::chrono::milliseconds(250)));
 
   namespace Event = Interface::Event;
   while (window.isOpen()) {
@@ -79,7 +133,7 @@ int main() {
       return 0;
     }
 
-    const auto cuTime = Clock::now();
+    const auto cuTime = Domain::Clock::now();
     if (cuTime - gs.lastRender < renderDelta) {
       continue;
     }
