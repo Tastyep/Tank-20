@@ -49,6 +49,7 @@ set(CONAN_PACKAGES
      docopt.cpp/0.6.3
      fmt/7.1.3
      spdlog/1.8.2
+     entt/3.6.0
      sfml/2.5.1@bincrafters/stable
      imgui-sfml/2.1@bincrafters/stable
      ")
@@ -60,12 +61,13 @@ find_package(Catch2)
 find_package(docopt)
 find_package(fmt)
 find_package(spdlog)
+find_package(EnTT)
 find_package(sfml)
 find_package(ImGui-SFML)
 list(
   APPEND
   EXTERNAL_LIBRARIES
-  "Catch2::Catch2;docopt::docopt_s;fmt::fmt;spdlog::libspdlog;sfml::sfml;ImGui-SFML::ImGui-SFML"
+  "Catch2::Catch2;docopt::docopt_s;fmt::fmt;spdlog::libspdlog;EnTT::EnTT;sfml::sfml;ImGui-SFML::ImGui-SFML"
 )
 
 include_directories(${INCLUDE_DIR})
