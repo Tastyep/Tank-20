@@ -1,16 +1,13 @@
 #ifndef APP_GAME_STATE
 #define APP_GAME_STATE
 
-#include <chrono>
+#include "domain/Concept.hpp"
 
 namespace App {
 
 struct GameState {
-  using Clock = std::chrono::steady_clock;
-  using TimePoint = std::chrono::time_point<Clock>;
-
-  TimePoint lastTick{Clock::now()};
-  TimePoint lastRender{Clock::now()};
+  Domain::TimePoint lastTick{Domain::Clock::now()};
+  Domain::TimePoint lastRender{Domain::Clock::now()};
 };
 
 } // namespace App
