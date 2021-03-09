@@ -41,8 +41,18 @@ Event::Type Window::nextEvent() {
   // ImGui::End(); // end _window
 }
 
+void Window::addView(std::unique_ptr<View::View> view) {
+  _views.push_back(std::move(view));
+}
+
 void Window::render() {
   ImGui::SFML::Update(_window, sf::milliseconds(10));
+
+  _window.clear();
+  for (auto &view : _views) {
+    view->render(_window);
+  }
+
   ImGui::SFML::Render(_window);
   _window.display();
 }
