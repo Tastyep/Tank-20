@@ -4,6 +4,7 @@
 #include "domain/Action.hpp"
 #include "domain/Concept.hpp"
 #include "domain/Sprite.hpp"
+#include "domain/Timer.hpp"
 #include "domain/entity/Factory.hpp"
 #include "interface/Event.hpp"
 #include "interface/Keyboard.hpp"
@@ -14,6 +15,7 @@
 
 #include <chrono>
 #include <spdlog/spdlog.h>
+#include <thread>
 
 #include <fstream>
 #include <iostream>
@@ -90,11 +92,12 @@ void loadMap(Domain::Entity::Factory &entFactory, std::string_view path) {
 }
 
 int main() {
-  Interface::Window                 window(1400, 800, "My window");
-  App::GameState                    gs{};
+  Interface::Window window(1400, 800, "My window");
+  // App::GameState                    gs{};
   App::Controller::ActionController actionController{};
   const auto                        fps = 60;
-  const auto renderDelta = std::chrono::milliseconds(1000) / fps;
+  const auto    renderDelta = std::chrono::milliseconds(1000) / fps;
+  Domain::Timer timer;
 
   auto tileManager = std::make_shared<Interface::TileManager>();
   tileManager->load("../asset/asset.png", {0, 0, 384, 64}, 32);
@@ -110,6 +113,7 @@ int main() {
 
   namespace Event = Interface::Event;
   while (window.isOpen()) {
+    timer.restart();
     const auto event = window.nextEvent();
 
     if (!isEmptyVariant(event)) {
@@ -133,11 +137,10 @@ int main() {
       return 0;
     }
 
-    const auto cuTime = Domain::Clock::now();
-    if (cuTime - gs.lastRender < renderDelta) {
-      continue;
-    }
-    gs.lastRender = cuTime;
     window.render();
+    const auto elapsed = timer.elapsed();
+    if (elapsed < renderDelta) {
+      std::this_thread::sleep_for(renderDelta - elapsed);
+    }
   }
 }
