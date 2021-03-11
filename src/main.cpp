@@ -8,19 +8,20 @@
 #include "domain/entity/Factory.hpp"
 #include "interface/Event.hpp"
 #include "interface/Keyboard.hpp"
+#include "interface/Map.hpp"
 #include "interface/Tile.hpp"
 #include "interface/Window.hpp"
 #include "interface/view/Fps.hpp"
 #include "interface/view/GameView.hpp"
 
-#include <chrono>
 #include <spdlog/spdlog.h>
-#include <thread>
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <optional>
 #include <string>
+#include <thread>
 #include <variant>
 
 std::optional<Domain::ActionV>
@@ -55,42 +56,6 @@ eventToAction(const Interface::Event::Type event) {
       event);
 }
 
-void loadMap(Domain::Entity::Factory &entFactory, std::string_view path) {
-  std::ifstream file(path.data());
-
-  if (!file.is_open()) {
-    // throw exception
-    return;
-  }
-  std::string              lineData;
-  std::vector<std::string> content;
-  while (getline(file, lineData)) {
-    content.push_back(std::move(lineData));
-  }
-
-  for (size_t y = 0; y < content.size(); ++y) {
-    const auto &line = content[y];
-    for (size_t x = 0; x < line.size(); ++x) {
-      const Domain::Vector2i pos{static_cast<int>(x) * 32,
-                                 static_cast<int>(y) * 32};
-      switch (line[x]) {
-      case '-':
-        entFactory.wall(pos, Domain::Sprite::ID::RLWall);
-        break;
-      case '|':
-        entFactory.wall(pos, Domain::Sprite::ID::UDWall);
-        break;
-      case 'T':
-        entFactory.tank(pos, Domain::Sprite::ID::Tank);
-        break;
-      default:
-        break;
-      }
-    }
-  }
-  file.close();
-}
-
 int main() {
   Interface::Window window(1400, 800, "My window");
   // App::GameState                    gs{};
@@ -100,12 +65,12 @@ int main() {
   Domain::Timer timer;
 
   auto tileManager = std::make_shared<Interface::TileManager>();
-  tileManager->load("../asset/asset.png", {0, 0, 384, 64}, 32);
-
-  auto                    registry = std::make_shared<entt::registry>();
+  auto registry = std::make_shared<entt::registry>();
   Domain::Entity::Factory entFactory(registry);
-  loadMap(entFactory, "../asset/map.txt");
+  auto                    map = std::make_shared<Interface::Map>(tileManager);
+  map->load("../asset/map.tmx");
 
+  window.addView(map);
   window.addView(
       std::make_unique<Interface::View::GameView>(registry, tileManager));
   window.addView(
@@ -137,8 +102,8 @@ int main() {
       return 0;
     }
 
-    window.render();
     const auto elapsed = timer.elapsed();
+    window.render(elapsed);
     if (elapsed < renderDelta) {
       std::this_thread::sleep_for(renderDelta - elapsed);
     }
