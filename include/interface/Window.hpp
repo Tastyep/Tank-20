@@ -6,6 +6,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <chrono>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -21,12 +22,12 @@ public:
 
   Event::Type nextEvent();
 
-  void addView(std::unique_ptr<View::View> view);
-  void render();
+  void addView(std::shared_ptr<View::View> view);
+  void render(std::chrono::nanoseconds elapsed);
 
 private:
   sf::RenderWindow                         _window;
-  std::vector<std::unique_ptr<View::View>> _views;
+  std::vector<std::shared_ptr<View::View>> _views;
 };
 
 } // namespace Interface

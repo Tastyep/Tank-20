@@ -1,7 +1,9 @@
 #include "interface/Window.hpp"
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Time.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Window/VideoMode.hpp>
+#include <chrono>
 #include <imgui-SFML.h>
 #include <imgui.h>
 
@@ -41,14 +43,17 @@ Event::Type Window::nextEvent() {
   // ImGui::End(); // end _window
 }
 
-void Window::addView(std::unique_ptr<View::View> view) {
+void Window::addView(std::shared_ptr<View::View> view) {
   _views.push_back(std::move(view));
 }
 
-void Window::render() {
-  ImGui::SFML::Update(_window, sf::milliseconds(10));
-
-  _window.clear();
+void Window::render(std::chrono::nanoseconds elapsed) {
+  ImGui::SFML::Update(
+      _window,
+      sf::microseconds(
+          std::chrono::duration_cast<std::chrono::milliseconds>(elapsed)
+              .count()));
+  _window.clear(sf::Color{0xFF, 0xFF, 0xFF});
   for (auto &view : _views) {
     view->render(_window);
   }
