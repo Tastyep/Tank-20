@@ -10,6 +10,7 @@ struct Vector2D {
 };
 
 using Vector2i = Vector2D<int>;
+using Vector2u = Vector2D<unsigned int>;
 
 } // namespace Domain
 

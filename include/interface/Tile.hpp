@@ -1,8 +1,8 @@
 #ifndef INTERFACE_TILE_HPP
 #define INTERFACE_TILE_HPP
 
-#include "domain/Shape.hpp"
 #include "domain/Sprite.hpp"
+#include "domain/Vector.hpp"
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <memory>
@@ -13,8 +13,8 @@ namespace Interface {
 
 class TileManager {
 public:
-  void load(const std::string &path, const Domain::IntRect &textureRect,
-            int tileSize);
+  bool load(const std::string &path, const Domain::Vector2u &tileSize,
+            unsigned int tileCount, unsigned int columnCount);
 
   const sf::Sprite &get(Domain::Sprite::ID spriteId) const;
 
