@@ -70,6 +70,9 @@ list(
   "Catch2::Catch2;docopt::docopt_s;fmt::fmt;spdlog::libspdlog;EnTT::EnTT;sfml::sfml;ImGui-SFML::ImGui-SFML"
 )
 
+# External dependencies without conan package
+include(FetchTmxlite)
+
 include_directories(${INCLUDE_DIR})
 include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
 
