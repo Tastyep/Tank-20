@@ -14,7 +14,7 @@ public:
   Factory(std::shared_ptr<entt::registry> registry);
 
   entt::entity wall(const Vector2i &pos, Sprite::ID spriteID);
-  entt::entity tank(const Vector2i &pos, Sprite::ID spriteID);
+  entt::entity tank(const Vector2i &pos);
 
 private:
   std::shared_ptr<entt::registry> _registry;
