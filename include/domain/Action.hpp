@@ -8,8 +8,8 @@ namespace Domain {
 enum class ActionCode {
   Forward = 0,
   Backward,
-  Left,
-  Right,
+  RotateLeft,
+  RotateRight,
   Use,
 };
 
@@ -18,14 +18,17 @@ struct Action {
   constexpr static Action code = c;
 
   [[nodiscard]] consteval static bool isMovement() {
-    return c >= ActionCode::Forward && c <= ActionCode::Right;
+    return c == ActionCode::Forward || c == ActionCode::Backward;
+  }
+  [[nodiscard]] consteval static bool isRotation() {
+    return c == ActionCode::RotateLeft || c == ActionCode::RotateRight;
   }
 };
 
 using ActionV =
     std::variant<Action<ActionCode::Forward>, Action<ActionCode::Backward>,
-                 Action<ActionCode::Left>, Action<ActionCode::Right>,
-                 Action<ActionCode::Use>>;
+                 Action<ActionCode::RotateLeft>,
+                 Action<ActionCode::RotateRight>, Action<ActionCode::Use>>;
 
 } // namespace Domain
 
