@@ -11,6 +11,7 @@
 #include "interface/Map.hpp"
 #include "interface/Tile.hpp"
 #include "interface/Window.hpp"
+#include "interface/controller/EventController.hpp"
 #include "interface/view/Fps.hpp"
 #include "interface/view/GameView.hpp"
 
@@ -24,51 +25,20 @@
 #include <thread>
 #include <variant>
 
-std::optional<Domain::ActionV>
-eventToAction(const Interface::Event::Type event) {
-  namespace Event = Interface::Event;
-  using KeyCode = Interface::Keyboard::KeyCode;
-  using Act = Domain::ActionCode;
-
-  return std::visit(
-      Overloaded{
-          [&](const Event::Pressed<Event::Key> &e)
-              -> std::optional<Domain::ActionV> {
-            switch (e.source.code) {
-            case KeyCode::W:
-              return Domain::Action<Act::Forward>{};
-            case KeyCode::S:
-              return Domain::Action<Act::Backward>{};
-            case KeyCode::A:
-              return Domain::Action<Act::Left>{};
-            case KeyCode::D:
-              return Domain::Action<Act::Right>{};
-            case KeyCode::Space:
-              return Domain::Action<Act::Use>{};
-            default:
-              return std::nullopt;
-            }
-          },
-          [](const auto & /* unused */) -> std::optional<Domain::ActionV> {
-            return std::nullopt;
-          },
-      },
-      event);
-}
-
 int main() {
   Interface::Window window(1400, 800, "My window");
   // App::GameState                    gs{};
-  App::Controller::ActionController actionController{};
+  auto registry = std::make_shared<entt::registry>();
+  App::Controller::ActionController actionController(registry);
   const auto                        fps = 60;
   const auto    renderDelta = std::chrono::milliseconds(1000) / fps;
   Domain::Timer timer;
 
   auto tileManager = std::make_shared<Interface::TileManager>();
-  auto registry = std::make_shared<entt::registry>();
   Domain::Entity::Factory entFactory(registry);
   auto                    map = std::make_shared<Interface::Map>(tileManager);
   map->load("../asset/map.tmx");
+  entFactory.tank({32, 32});
 
   window.addView(map);
   window.addView(
@@ -77,19 +47,15 @@ int main() {
       std::make_unique<Interface::View::Fps>(std::chrono::milliseconds(250)));
 
   namespace Event = Interface::Event;
+  Interface::Controller::EventController eventCtrler;
+
   while (window.isOpen()) {
-    timer.restart();
-    const auto event = window.nextEvent();
+    auto        elapsed = timer.restart();
+    Event::Type event{};
 
-    if (!isEmptyVariant(event)) {
-      const auto action = eventToAction(event);
-
-      if (action) {
-        const auto handler = [&actionController](const auto &act) {
-          actionController.handle(act);
-        };
-        std::visit(handler, *action);
-      }
+    for (event = window.nextEvent(); !isEmptyVariant(event);
+         event = window.nextEvent()) {
+      eventCtrler.processEvent(event);
 
       std::visit(
           Overloaded{
@@ -98,11 +64,19 @@ int main() {
           },
           event);
     }
-    if (!window.isOpen()) {
-      return 0;
+
+    for (const auto &action : eventCtrler.actions()) {
+      const auto handler = [&actionController](const auto &act) {
+        actionController.handle(act);
+      };
+      std::visit(handler, action);
     }
 
-    const auto elapsed = timer.elapsed();
+    if (!window.isOpen()) {
+      break;
+    }
+
+    elapsed = timer.elapsed();
     window.render(elapsed);
     if (elapsed < renderDelta) {
       std::this_thread::sleep_for(renderDelta - elapsed);
