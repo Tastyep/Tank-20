@@ -13,7 +13,7 @@ template <class... Ts>
 Overloaded(Ts...) -> Overloaded<Ts...>;
 
 template <typename Enum, typename U = std::underlying_type_t<Enum>>
-U enum_cast(Enum e) {
+constexpr U enum_cast(Enum e) {
   return static_cast<U>(e);
 }
 

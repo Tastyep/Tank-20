@@ -11,11 +11,12 @@ enum class ActionCode {
   RotateLeft,
   RotateRight,
   Use,
+  Count, // The number of action code
 };
 
 template <ActionCode c>
 struct Action {
-  constexpr static Action code = c;
+  constexpr static ActionCode code = c;
 
   [[nodiscard]] consteval static bool isMovement() {
     return c == ActionCode::Forward || c == ActionCode::Backward;
@@ -29,6 +30,8 @@ using ActionV =
     std::variant<Action<ActionCode::Forward>, Action<ActionCode::Backward>,
                  Action<ActionCode::RotateLeft>,
                  Action<ActionCode::RotateRight>, Action<ActionCode::Use>>;
+
+ActionV actionFromCode(ActionCode code);
 
 } // namespace Domain
 
