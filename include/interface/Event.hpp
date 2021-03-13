@@ -13,6 +13,11 @@ struct Pressed {
   Source source;
 };
 
+template <typename Source>
+struct Released {
+  Source source;
+};
+
 struct Key {
   Keyboard::KeyCode code;
   bool              alt;
@@ -23,7 +28,8 @@ struct Key {
 
 struct WindowClosed {};
 
-using Type = std::variant<std::monostate, WindowClosed, Pressed<Key>>;
+using Type =
+    std::variant<std::monostate, WindowClosed, Pressed<Key>, Released<Key>>;
 
 struct Converter {
   static Type fromSFML(const sf::Event &e) {
@@ -32,6 +38,13 @@ struct Converter {
       return WindowClosed{};
     case sf::Event::KeyPressed:
       return Pressed<Key>{
+          .source = {.code = Keyboard::KeyCode{enum_cast(e.key.code)},
+                     .alt = e.key.alt,
+                     .control = e.key.control,
+                     .shift = e.key.shift,
+                     .system = e.key.system}};
+    case sf::Event::KeyReleased:
+      return Released<Key>{
           .source = {.code = Keyboard::KeyCode{enum_cast(e.key.code)},
                      .alt = e.key.alt,
                      .control = e.key.control,
