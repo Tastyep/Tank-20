@@ -1,6 +1,7 @@
 #ifndef DOMAIN_ACTION_HPP
 #define DOMAIN_ACTION_HPP
 
+#include <string_view>
 #include <variant>
 
 namespace Domain {
@@ -31,7 +32,8 @@ using ActionV =
                  Action<ActionCode::RotateLeft>,
                  Action<ActionCode::RotateRight>, Action<ActionCode::Use>>;
 
-ActionV actionFromCode(ActionCode code);
+std::string_view actionName(ActionCode code);
+ActionV          actionFromCode(ActionCode code);
 
 } // namespace Domain
 

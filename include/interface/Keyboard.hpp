@@ -1,6 +1,8 @@
 #ifndef APP_KEYBOARD_HPP
 #define APP_KEYBOARD_HPP
 
+#include <string_view>
+
 namespace Interface::Keyboard {
 
 enum class KeyCode {
@@ -106,7 +108,10 @@ enum class KeyCode {
   F14,
   F15,
   Pause,
+  Count,
 };
+
+std::string_view keyName(KeyCode code);
 
 } // namespace Interface::Keyboard
 
