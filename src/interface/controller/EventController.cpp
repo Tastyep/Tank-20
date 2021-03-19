@@ -1,20 +1,12 @@
 #include "interface/controller/EventController.hpp"
-#include "domain/Action.hpp"
-#include "interface/Keyboard.hpp"
-#include <iostream>
 #include <unordered_map>
 #include <variant>
 
 namespace Interface::Controller {
 
-using KeyCode = Keyboard::KeyCode;
-const std::unordered_map<KeyCode, Domain::ActionCode> keyMapping{
-    {KeyCode::W, Domain::ActionCode::Forward},
-    {KeyCode::S, Domain::ActionCode::Backward},
-    {KeyCode::A, Domain::ActionCode::RotateLeft},
-    {KeyCode::D, Domain::ActionCode::RotateRight},
-    {KeyCode::Space, Domain::ActionCode::Use},
-};
+EventController::EventController(
+    std::shared_ptr<Service::ControllerMapper> controllerMapper)
+    : _controllerMapper(std::move(controllerMapper)) {}
 
 void EventController::processEvent(const Event::Type event) {
   return std::visit([this](const auto &e) { this->process(e); }, event);
@@ -33,17 +25,17 @@ std::vector<Domain::ActionV> EventController::actions() {
 }
 
 void EventController::process(const Event::Pressed<Event::Key> &e) {
-  const auto actionCode = keyMapping.find(e.source.code);
-  if (actionCode != keyMapping.end()) {
-    _actionAttrs[enum_cast<Domain::ActionCode, size_t>(actionCode->second)]
+  const auto actionCode = (*_controllerMapper)[e.source.code];
+  if (actionCode) {
+    _actionAttrs[enum_cast<Domain::ActionCode, size_t>(actionCode.value())]
         .state = true;
   }
 }
 
 void EventController::process(const Event::Released<Event::Key> &e) {
-  const auto actionCode = keyMapping.find(e.source.code);
-  if (actionCode != keyMapping.end()) {
-    _actionAttrs[enum_cast<Domain::ActionCode, size_t>(actionCode->second)]
+  const auto actionCode = (*_controllerMapper)[e.source.code];
+  if (actionCode) {
+    _actionAttrs[enum_cast<Domain::ActionCode, size_t>(actionCode.value())]
         .state = false;
   }
 }

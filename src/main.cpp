@@ -12,6 +12,8 @@
 #include "interface/Tile.hpp"
 #include "interface/Window.hpp"
 #include "interface/controller/EventController.hpp"
+#include "interface/service/ControllerMapper.hpp"
+#include "interface/view/Control.hpp"
 #include "interface/view/Fps.hpp"
 #include "interface/view/GameView.hpp"
 
@@ -40,14 +42,16 @@ int main() {
   map->load("../asset/map.tmx");
   entFactory.tank({32, 32});
 
+  namespace Event = Interface::Event;
+  auto controllerMapper =
+      std::make_shared<Interface::Service::ControllerMapper>();
+  Interface::Controller::EventController eventCtrler(controllerMapper);
+
   window.addView(map);
   window.addView(
       std::make_unique<Interface::View::GameView>(registry, tileManager));
   window.addView(
       std::make_unique<Interface::View::Fps>(std::chrono::milliseconds(250)));
-
-  namespace Event = Interface::Event;
-  Interface::Controller::EventController eventCtrler;
 
   while (window.isOpen()) {
     auto        elapsed = timer.restart();
