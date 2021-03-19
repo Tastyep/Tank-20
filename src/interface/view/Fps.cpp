@@ -1,8 +1,6 @@
 #include "interface/view/Fps.hpp"
 #include <imgui.h>
 
-#include <iostream>
-
 namespace Interface::View {
 
 Fps::Fps(std::chrono::milliseconds refreshRate)

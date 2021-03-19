@@ -52,6 +52,7 @@ int main() {
       std::make_unique<Interface::View::GameView>(registry, tileManager));
   window.addView(
       std::make_unique<Interface::View::Fps>(std::chrono::milliseconds(250)));
+  window.addView(std::make_unique<Interface::View::Control>(controllerMapper));
 
   while (window.isOpen()) {
     auto        elapsed = timer.restart();
