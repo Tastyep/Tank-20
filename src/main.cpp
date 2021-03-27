@@ -24,7 +24,6 @@
 #include <iostream>
 #include <optional>
 #include <string>
-#include <thread>
 #include <variant>
 
 int main() {
@@ -32,9 +31,10 @@ int main() {
   // App::GameState                    gs{};
   auto registry = std::make_shared<entt::registry>();
   App::Controller::ActionController actionController(registry);
-  const auto                        fps = 60;
-  const auto    renderDelta = std::chrono::milliseconds(1000) / fps;
-  Domain::Timer timer;
+  const auto                        stepDelta = 30;
+  const auto timestep = std::chrono::milliseconds(1000) / stepDelta;
+  std::chrono::nanoseconds acc{0};
+  Domain::Timer            timer;
 
   auto tileManager = std::make_shared<Interface::TileManager>();
   Domain::Entity::Factory entFactory(registry);
@@ -58,33 +58,35 @@ int main() {
     auto        elapsed = timer.restart();
     Event::Type event{};
 
-    for (event = window.nextEvent(); !isEmptyVariant(event);
-         event = window.nextEvent()) {
-      eventCtrler.processEvent(event);
+    acc += elapsed;
+    while (acc >= timestep) {
+      for (event = window.nextEvent(); !isEmptyVariant(event);
+           event = window.nextEvent()) {
+        eventCtrler.processEvent(event);
 
-      std::visit(
-          Overloaded{
-              [&](const Event::WindowClosed & /* unused */) { window.close(); },
-              [](const auto & /* unused */) {},
-          },
-          event);
+        std::visit(Overloaded{
+                       [&](const Event::WindowClosed & /* unused */) {
+                         window.close();
+                       },
+                       [](const auto & /* unused */) {},
+                   },
+                   event);
+      }
+
+      for (const auto &action : eventCtrler.actions()) {
+        const auto handler = [&actionController](const auto &act) {
+          actionController.handle(act);
+        };
+        std::visit(handler, action);
+      }
+
+      acc -= timestep;
+
+      if (!window.isOpen()) {
+        return 0;
+      }
     }
 
-    for (const auto &action : eventCtrler.actions()) {
-      const auto handler = [&actionController](const auto &act) {
-        actionController.handle(act);
-      };
-      std::visit(handler, action);
-    }
-
-    if (!window.isOpen()) {
-      break;
-    }
-
-    elapsed = timer.elapsed();
     window.render(elapsed);
-    if (elapsed < renderDelta) {
-      std::this_thread::sleep_for(renderDelta - elapsed);
-    }
   }
 }
