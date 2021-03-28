@@ -72,6 +72,7 @@ list(
 
 # External dependencies without conan package
 include(FetchTmxlite)
+include(FetchPlayRho)
 
 include_directories(${INCLUDE_DIR})
 include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
@@ -87,4 +88,4 @@ add_format_target(${PROJECT_CODE_FILES})
 add_executable(Tank ${PROJECT_SOURCE_FILES})
 target_link_libraries(Tank PRIVATE project_warnings project_options
                                    ${EXTERNAL_LIBRARIES})
-# add_dependencies(Tank ${EXTERNAL_DEPENDENCIES})
+add_dependencies(Tank ${EXTERNAL_DEPENDENCIES})
