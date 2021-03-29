@@ -1,7 +1,7 @@
-#ifndef DOMAIN_SPRITE_HPP
-#define DOMAIN_SPRITE_HPP
+#ifndef DOMAIN_ENTITY_IDENTITY_HPP
+#define DOMAIN_ENTITY_IDENTITY_HPP
 
-namespace Domain::Sprite {
+namespace Domain::Entity {
 
 enum class ID {
   URDLWall = 0,
@@ -20,6 +20,6 @@ enum class ID {
   Missile,
 };
 
-} // namespace Domain::Sprite
+} // namespace Domain::Entity
 
-#endif // DOMAIN_SPRITE_HPP
+#endif // DOMAIN_ENTITY_IDENTITY_HPP

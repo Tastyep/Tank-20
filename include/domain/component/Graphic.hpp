@@ -1,12 +1,12 @@
 #ifndef DOMAIN_COMPONENT_GRAPHIC_HPP
 #define DOMAIN_COMPONENT_GRAPHIC_HPP
 
-#include "domain/Sprite.hpp"
+#include "domain/entity/Identity.hpp"
 
 namespace Domain::Component {
 
 struct Sprite {
-  Domain::Sprite::ID id;
+  Domain::Entity::ID id;
 };
 
 } // namespace Domain::Component

@@ -29,7 +29,7 @@ bool TileManager::load(const std::string &     path,
   return true;
 }
 
-const sf::Sprite &TileManager::get(Domain::Sprite::ID spriteId) const {
+const sf::Sprite &TileManager::get(Domain::Entity::ID spriteId) const {
   return _sprites[static_cast<size_t>(spriteId)];
 }
 

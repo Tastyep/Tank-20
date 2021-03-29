@@ -46,7 +46,7 @@ void Map::render(sf::RenderWindow &window) {
         }
 
         auto sprite = _tileManager->get(
-            Domain::Sprite::ID{static_cast<int>(tile.ID) - 1});
+            Domain::Entity::ID{static_cast<int>(tile.ID) - 1});
         sprite.setPosition(static_cast<float>(x * tileSize.x),
                            static_cast<float>(y * tileSize.y));
         window.draw(sprite);
