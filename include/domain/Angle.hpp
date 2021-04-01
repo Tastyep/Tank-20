@@ -6,10 +6,12 @@
 namespace Domain {
 
 struct Angle {
-  float degree;
+  Angle(float x, float y);
 
   float    toRad() const;
   Vector2f toVec() const;
+
+  float degree;
 };
 
 } // namespace Domain

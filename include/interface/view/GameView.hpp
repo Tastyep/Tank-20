@@ -4,14 +4,18 @@
 #include "interface/Tile.hpp"
 #include "interface/view/View.hpp"
 #include <entt/entity/registry.hpp>
+
+#include <PlayRho/Dynamics/World.hpp>
+
 #include <memory>
 
 namespace Interface::View {
 
 class GameView final : public View {
 public:
-  GameView(std::shared_ptr<entt::registry> registry,
-           std::shared_ptr<TileManager>    tileManager);
+  GameView(std::shared_ptr<entt::registry>     registry,
+           std::shared_ptr<playrho::d2::World> world,
+           std::shared_ptr<TileManager>        tileManager);
   ~GameView() override = default;
 
   GameView(const GameView &) = delete;
@@ -22,8 +26,9 @@ public:
   void render(sf::RenderWindow &window) override;
 
 private:
-  std::shared_ptr<entt::registry> _registry;
-  std::shared_ptr<TileManager>    _tileManager;
+  std::shared_ptr<entt::registry>     _registry;
+  std::shared_ptr<playrho::d2::World> _world;
+  std::shared_ptr<TileManager>        _tileManager;
 };
 
 } // namespace Interface::View
