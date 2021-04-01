@@ -64,13 +64,10 @@ int main() {
            event = window.nextEvent()) {
         eventCtrler.processEvent(event);
 
-        std::visit(Overloaded{
-                       [&](const Event::WindowClosed & /* unused */) {
-                         window.close();
-                       },
-                       [](const auto & /* unused */) {},
-                   },
-                   event);
+        if (std::holds_alternative<Event::WindowClosed>(event)) {
+          window.close();
+          return 0;
+        }
       }
 
       for (const auto &action : eventCtrler.actions()) {
