@@ -1,8 +1,14 @@
 #include "interface/Map.hpp"
-#include "domain/Sprite.hpp"
+#include "domain/Coordinate.hpp"
+#include "domain/Vector.hpp"
+#include "domain/entity/Identity.hpp"
 #include "interface/Tile.hpp"
-#include <iostream>
+
+#include <algorithm>
+#include <iterator>
 #include <memory>
+
+#include <tmxlite/Object.hpp>
 #include <tmxlite/TileLayer.hpp>
 
 namespace Interface {
@@ -10,13 +16,15 @@ namespace Interface {
 Map::Map(std::shared_ptr<TileManager> tileManager)
     : _tileManager(std::move(tileManager)) {}
 
-bool Map::load(const std::string &path) {
+bool Map::load(
+    const std::string &                               path,
+    std::shared_ptr<Domain::Physic::ShapeConfManager> shapeConfManager) {
   if (!_map.load(path)) {
     return false;
   }
 
   const auto &tileSets = _map.getTilesets();
-  for (const auto &tileSet : tileSets) {
+  for (size_t count = 0; const auto &tileSet : tileSets) {
     const auto &tileSetPath = tileSet.getImagePath();
     const auto &tileSize = tileSet.getTileSize();
     const auto  tileCount = tileSet.getTileCount();
@@ -25,14 +33,59 @@ bool Map::load(const std::string &path) {
                             columnCount)) {
       return false;
     }
+
+    const auto &tiles = tileSet.getTiles();
+    for (const auto &tile : tiles) {
+      const auto &objects = tile.objectGroup.getObjects();
+
+      // const auto &properties = tile.properties;
+      // for (const auto &property : properties) {
+      // std::cout << property.getName() << " " << property.getStringValue()
+      //<< '\n';
+      //}
+
+      if (objects.size() > 1) {
+        const auto polygons = this->parseMultiPolygon(objects);
+        shapeConfManager->load(static_cast<Domain::Entity::ID>(count),
+                               polygons);
+      } else {
+        for (const auto &object : objects) {
+          switch (object.getShape()) {
+          case tmx::Object::Shape::Ellipse: {
+            const auto [center, radius] = this->parseEllipse(object);
+            shapeConfManager->load(static_cast<Domain::Entity::ID>(count),
+                                   center, radius);
+            break;
+          }
+          case tmx::Object::Shape::Polygon: {
+            const auto polygon = this->parsePolygon(object);
+            shapeConfManager->load(static_cast<Domain::Entity::ID>(count),
+                                   polygon);
+            break;
+          }
+          case tmx::Object::Shape::Rectangle: {
+            const auto polygon = this->parseRectangle(object);
+            shapeConfManager->load(static_cast<Domain::Entity::ID>(count),
+                                   polygon);
+            break;
+          }
+          default:
+            // error: unsuported shape
+            break;
+          }
+        }
+      }
+      ++count;
+    }
   }
+
   return true;
 }
 
 void Map::render(sf::RenderWindow &window) {
   const auto &layers = _map.getLayers();
-  const auto  tileCount = _map.getTileCount();
   const auto &tileSize = _map.getTileSize();
+  const auto  tileCount = _map.getTileCount();
 
   for (const auto &layer : layers) {
     const auto &tileLayer = layer->getLayerAs<tmx::TileLayer>();
@@ -53,6 +106,65 @@ void Map::render(sf::RenderWindow &window) {
       }
     }
   }
+}
+
+// private
+
+std::pair<Domain::Vector2f, float>
+Map::parseEllipse(const tmx::Object &object) {
+  const auto &pos = object.getPosition();
+  const auto &box = object.getAABB();
+  if (box.width != box.height) {
+    // throw exception
+  }
+
+  const auto radius = box.width / 2;
+  return {Domain::Coordinate::toMeter<float>({pos.x + radius, pos.y + radius}),
+          radius};
+}
+
+std::vector<Domain::Vector2f> Map::parsePolygon(const tmx::Object &object) {
+  const auto &                  points = object.getPoints();
+  std::vector<Domain::Vector2f> vertices{};
+
+  vertices.reserve(points.size());
+  std::transform(points.begin(), points.end(), std::back_inserter(vertices),
+                 [](const auto &v) {
+                   return Domain::Coordinate::toMeter<float>({v.x, v.y});
+                 });
+  return vertices;
+}
+
+std::vector<Domain::Vector2f> Map::parseRectangle(const tmx::Object &object) {
+  const auto &box = object.getAABB();
+  return {
+      Domain::Coordinate::toMeter<float>({box.left, box.top}),
+      Domain::Coordinate::toMeter<float>({box.left + box.width, box.top}),
+      Domain::Coordinate::toMeter<float>(
+          {box.left + box.width, box.top + box.height}),
+      Domain::Coordinate::toMeter<float>({box.left, box.top + box.height}),
+  };
+}
+
+std::vector<std::vector<Domain::Vector2f>>
+Map::parseMultiPolygon(const std::vector<tmx::Object> &objects) {
+  std::vector<std::vector<Domain::Vector2f>> polygons;
+
+  for (const auto &object : objects) {
+    switch (object.getShape()) {
+    case tmx::Object::Shape::Polygon:
+      polygons.push_back(this->parsePolygon(object));
+      break;
+    case tmx::Object::Shape::Rectangle:
+      polygons.push_back(this->parseRectangle(object));
+      break;
+    default:
+      // error: unsuported shape, must be a convex polygon
+      break;
+    }
+  }
+
+  return polygons;
 }
 
 } // namespace Interface
