@@ -51,10 +51,11 @@ int main() {
   // Graphical resource loading
   auto tileManager = std::make_shared<Interface::TileManager>();
   auto shapeConfManager = std::make_shared<Domain::Physic::ShapeConfManager>();
-  Domain::Entity::Factory entFactory(registry, world, shapeConfManager);
-  auto                    map = std::make_shared<Interface::Map>(tileManager);
-  map->load("../asset/map.tmx", shapeConfManager);
-  entFactory.tank({1, 1});
+  auto entFactory = std::make_shared<Domain::Entity::Factory>(registry, world,
+                                                              shapeConfManager);
+  auto map = std::make_shared<Interface::Map>(tileManager);
+  map->load("../asset/map.tmx", shapeConfManager, entFactory);
+  entFactory->tank({1, 1});
 
   // Controller mapping
   namespace Event = Interface::Event;

@@ -2,6 +2,7 @@
 #define INTERFACE_MAP_HPP
 
 #include "domain/Vector.hpp"
+#include "domain/entity/Factory.hpp"
 #include "domain/physic/ShapeConfManager.hpp"
 #include "interface/Tile.hpp"
 #include "interface/view/View.hpp"
@@ -20,7 +21,8 @@ public:
 
   void render(sf::RenderWindow &window) override;
   bool load(const std::string &                               path,
-            std::shared_ptr<Domain::Physic::ShapeConfManager> shapeConfManager);
+            std::shared_ptr<Domain::Physic::ShapeConfManager> shapeConfManager,
+            std::shared_ptr<Domain::Entity::Factory>          entityFactory);
 
 private:
   std::pair<Domain::Vector2f, float> parseEllipse(const tmx::Object &object);

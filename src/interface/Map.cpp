@@ -1,10 +1,12 @@
 #include "interface/Map.hpp"
 #include "domain/Coordinate.hpp"
 #include "domain/Vector.hpp"
+#include "domain/entity/Factory.hpp"
 #include "domain/entity/Identity.hpp"
 #include "interface/Tile.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
 #include <memory>
 
@@ -18,13 +20,16 @@ Map::Map(std::shared_ptr<TileManager> tileManager)
 
 bool Map::load(
     const std::string &                               path,
-    std::shared_ptr<Domain::Physic::ShapeConfManager> shapeConfManager) {
+    std::shared_ptr<Domain::Physic::ShapeConfManager> shapeConfManager,
+    std::shared_ptr<Domain::Entity::Factory>          entityFactory) {
   if (!_map.load(path)) {
     return false;
   }
 
-  const auto &tileSets = _map.getTilesets();
-  for (size_t count = 0; const auto &tileSet : tileSets) {
+  // TODO: Check that id doesn't become bigger than Count(EntityId)
+  std::vector<std::uint32_t> entityTileIds;
+  const auto &               tileSets = _map.getTilesets();
+  for (size_t id = 0; const auto &tileSet : tileSets) {
     const auto &tileSetPath = tileSet.getImagePath();
     const auto &tileSize = tileSet.getTileSize();
     const auto  tileCount = tileSet.getTileCount();
@@ -46,26 +51,25 @@ bool Map::load(
 
       if (objects.size() > 1) {
         const auto polygons = this->parseMultiPolygon(objects);
-        shapeConfManager->load(static_cast<Domain::Entity::ID>(count),
-                               polygons);
+        shapeConfManager->load(static_cast<Domain::Entity::ID>(id), polygons);
       } else {
         for (const auto &object : objects) {
           switch (object.getShape()) {
           case tmx::Object::Shape::Ellipse: {
             const auto [center, radius] = this->parseEllipse(object);
-            shapeConfManager->load(static_cast<Domain::Entity::ID>(count),
-                                   center, radius);
+            shapeConfManager->load(static_cast<Domain::Entity::ID>(id), center,
+                                   radius);
             break;
           }
           case tmx::Object::Shape::Polygon: {
             const auto polygon = this->parsePolygon(object);
-            shapeConfManager->load(static_cast<Domain::Entity::ID>(count),
+            shapeConfManager->load(static_cast<Domain::Entity::ID>(id),
                                    polygon);
             break;
           }
           case tmx::Object::Shape::Rectangle: {
             const auto polygon = this->parseRectangle(object);
-            shapeConfManager->load(static_cast<Domain::Entity::ID>(count),
+            shapeConfManager->load(static_cast<Domain::Entity::ID>(id),
                                    polygon);
             break;
           }
@@ -75,7 +79,40 @@ bool Map::load(
           }
         }
       }
-      ++count;
+      // Only increment the entityID if collision objects are available
+      if (!objects.empty()) {
+        ++id;
+        entityTileIds.push_back(tile.ID);
+      }
+    }
+  }
+
+  const auto &layers = _map.getLayers();
+  const auto &tileSize = _map.getTileSize();
+  const auto  tileCount = _map.getTileCount();
+  for (const auto &layer : layers) {
+    const auto &tileLayer = layer->getLayerAs<tmx::TileLayer>();
+    const auto &tiles = tileLayer.getTiles();
+
+    for (unsigned int y = 0; y < tileCount.y; ++y) {
+      for (unsigned int x = 0; x < tileCount.x; ++x) {
+        const auto &tile = tiles[y * tileCount.x + x];
+        // Empty tile or no associated object
+        if (tile.ID == 0 ||
+            std::find(entityTileIds.begin(), entityTileIds.end(), tile.ID) ==
+                entityTileIds.end()) {
+          continue;
+        }
+
+        const auto entityId = static_cast<Domain::Entity::ID>(tile.ID - 1);
+        if (entityId >= Domain::Entity::ID::URDLWall &&
+            entityId <= Domain::Entity::ID::BallWall) {
+
+          entityFactory->wall(Domain::Coordinate::toMeter(Domain::Vector2u{
+                                  x * tileSize.x, y * tileSize.y}),
+                              entityId);
+        }
+      }
     }
   }
 
@@ -93,7 +130,7 @@ void Map::render(sf::RenderWindow &window) {
 
     for (unsigned int y = 0; y < tileCount.y; ++y) {
       for (unsigned int x = 0; x < tileCount.x; ++x) {
-        const auto tile = tiles[y * tileCount.x + x];
+        const auto &tile = tiles[y * tileCount.x + x];
         if (tile.ID == 0) { // Empty
           continue;
         }

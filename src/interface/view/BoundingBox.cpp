@@ -89,7 +89,10 @@ void BoundingBox::drawCircle(sf::RenderWindow &                 window,
   const auto radius = shape.GetRadius();
 
   sf::CircleShape circle(radius);
-  circle.setPosition({pixelCoor.x, pixelCoor.y});
+  circle.setPosition({pixelCoor.x - radius, pixelCoor.y - radius});
+  circle.setOutlineThickness(1);
+  circle.setFillColor({0, 0, 0, 0});
+  circle.setOutlineColor({0xFF, 0xFF, 0xFF, 0xFF});
   window.draw(circle);
 }
 
