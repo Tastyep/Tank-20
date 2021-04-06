@@ -6,6 +6,8 @@
 #include "domain/component/Character.hpp"
 #include "domain/component/Physic.hpp"
 
+#include <PlayRho/Common/UnitVec.hpp>
+#include <PlayRho/Common/Vector2.hpp>
 #include <PlayRho/Common/Velocity.hpp>
 #include <PlayRho/Dynamics/Body.hpp>
 #include <PlayRho/Dynamics/World.hpp>
@@ -36,21 +38,20 @@ public:
     auto view =
         _registry->view<const Component::Player, const Component::Body>();
     view.each([this](const auto & /* player */, const auto &bodyComp) {
-      auto body = _world->GetBody(bodyComp.id);
-      auto velocity = body.GetVelocity();
+      const auto force = (code == ActionCode::Forward) ? 5.F : -5.F;
+      const auto speed = playrho::LinearVelocity2(force, 0);
+      const auto velocity = playrho::d2::Rotate(
+          speed, playrho::d2::GetTransformation(*_world, bodyComp.id).q);
 
-      const auto force = (code == ActionCode::Forward) ? 1.F : -1.F;
-      const auto dt = 3.0F;
+      playrho::d2::SetVelocity(*_world, bodyComp.id, velocity);
 
-      velocity.linear[0] = force * dt;
-      body.SetVelocity(velocity);
-      _world->SetBody(bodyComp.id, body);
       // kinematic.acceleration = force * kinematic.angle.toVec();
       // kinematic.velocity = kinematic.acceleration * dt;
       // position.value += kinematic.velocity * dt;
     });
     std::cout << "Movement action " << static_cast<int>(code) << '\n';
   }
+
   template <Domain::ActionCode code>
   void handle(const Domain::Action<code> &) requires(
       Domain::Action<code>::isRotation()) {
@@ -60,17 +61,16 @@ public:
     view.each([this](const auto & /* player */, const auto &bodyComp) {
       // const auto &body = _world->GetBody(bodyComp.id);
 
-      const auto force = (code == ActionCode::RotateRight) ? 1.F : -1.F;
-      const auto dt = 3.0F;
-      const auto angleStep = 2;
+      const auto force = (code == ActionCode::RotateRight) ? 0.1F : -0.1F;
 
       const auto angle = playrho::d2::GetAngle(*_world, bodyComp.id);
-      playrho::d2::SetAngle(*_world, bodyComp.id,
-                            angle + force * angleStep * dt);
-      // kinematic.angle.degree += force * angleStep * dt;
+      playrho::d2::SetAngle(*_world, bodyComp.id, angle + force);
+      // playrho::d2::SetVelocity(
+      //*_world, bodyComp.id,
+      // playrho::d2::Rotate(
+      // playrho::d2::GetLinearVelocity(*_world, bodyComp.id),
+      // playrho::d2::GetTransformation(*_world, bodyComp.id).q));
     });
-
-    std::cout << "Rotation action " << static_cast<int>(code) << '\n';
   }
 
   template <Domain::ActionCode code>
