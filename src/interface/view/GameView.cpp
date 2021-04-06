@@ -6,6 +6,7 @@
 
 #include <PlayRho/Dynamics/Body.hpp>
 #include <PlayRho/Dynamics/BodyConf.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <memory>
 #include <utility>
 
@@ -23,20 +24,23 @@ void GameView::render(sf::RenderWindow &window) {
   const auto view =
       _registry->view<const Component::Body, const Component::Sprite>();
 
-  for (const auto &[entity, bodyComp, sprite] : view.each()) {
+  for (const auto &[entity, bodyComp, spriteComp] : view.each()) {
+    const auto &tile =
+        _tileManager->getTile(static_cast<size_t>(spriteComp.id));
+    auto sprite = sf::Sprite(*tile.texture, tile.textureRect);
+    // const auto bound = sprite.getLocalBounds();
+
     const auto &body = _world->GetBody(bodyComp.id);
     const auto &transformation = body.GetTransformation();
     const auto &pos = transformation.p;
     const auto &dir = transformation.q;
     const auto  pixelPos = Domain::Coordinate::toPixel<float>({pos[0], pos[1]});
-    auto        tile = _tileManager->get(sprite.id);
-    const auto  bound = tile.getLocalBounds();
 
-    tile.setOrigin(bound.width / 2.F, bound.height / 2.F);
-    tile.setPosition(pixelPos.x, pixelPos.y);
-    tile.setRotation(Domain::Angle(dir[0], dir[1]).degree);
+    // sprite.setOrigin(bound.width / 2.F, bound.height / 2.F);
+    sprite.setPosition(pixelPos.x, pixelPos.y);
+    sprite.setRotation(Domain::Angle(dir[0], dir[1]).degree);
 
-    window.draw(tile);
+    window.draw(sprite);
   }
 }
 

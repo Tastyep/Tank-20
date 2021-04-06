@@ -3,24 +3,31 @@
 
 #include "domain/Vector.hpp"
 #include "domain/entity/Identity.hpp"
-#include <SFML/Graphics/Sprite.hpp>
+
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/Texture.hpp>
+
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace Interface {
+
+struct Tile {
+  std::shared_ptr<sf::Texture> texture;
+  sf::IntRect                  textureRect;
+};
 
 class TileManager {
 public:
   bool load(const std::string &path, const Domain::Vector2u &tileSize,
             unsigned int tileCount, unsigned int columnCount);
 
-  const sf::Sprite &get(Domain::Entity::ID spriteId) const;
+  const Tile &getTile(size_t id) const;
 
 private:
-  std::vector<sf::Sprite>                   _sprites;
-  std::vector<std::unique_ptr<sf::Texture>> _textures{};
+  std::vector<Tile> _tiles;
 };
 
 } // namespace Interface
