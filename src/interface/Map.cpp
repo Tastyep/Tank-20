@@ -5,6 +5,9 @@
 #include "domain/entity/Identity.hpp"
 #include "interface/Tile.hpp"
 
+#include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/Vertex.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
@@ -88,22 +91,53 @@ bool Map::load(
   }
 
   const auto &layers = _map.getLayers();
+  _layers.resize(layers.size());
+
   const auto &tileSize = _map.getTileSize();
   const auto  tileCount = _map.getTileCount();
-  for (const auto &layer : layers) {
+  for (size_t count = 0; const auto &layer : layers) {
     const auto &tileLayer = layer->getLayerAs<tmx::TileLayer>();
     const auto &tiles = tileLayer.getTiles();
 
     for (unsigned int y = 0; y < tileCount.y; ++y) {
       for (unsigned int x = 0; x < tileCount.x; ++x) {
         const auto &tile = tiles[y * tileCount.x + x];
-        // Empty tile or no associated object
-        if (tile.ID == 0 ||
-            std::find(entityTileIds.begin(), entityTileIds.end(), tile.ID) ==
-                entityTileIds.end()) {
+
+        // No tile
+        if (tile.ID == 0) {
           continue;
         }
+        // No associated object
+        if (std::find(entityTileIds.begin(), entityTileIds.end(), tile.ID) ==
+            entityTileIds.end()) {
+          const auto &texture = _tileManager->getTile(tile.ID - 1).texture;
+          auto &      vertices = _layers[count][texture];
+          const auto  vertexCount = vertices.getVertexCount();
 
+          vertices.setPrimitiveType(sf::Quads);
+          vertices.resize(vertexCount + 4);
+          sf::Vertex *quad = &vertices[vertexCount];
+
+          quad[0].position =
+              sf::Vector2f(sf::Vector2u{x * tileSize.x, y * tileSize.y});
+          quad[1].position =
+              sf::Vector2f(sf::Vector2u{(x + 1) * tileSize.x, y * tileSize.y});
+          quad[2].position = sf::Vector2f(
+              sf::Vector2u{(x + 1) * tileSize.x, (y + 1) * tileSize.y});
+          quad[3].position =
+              sf::Vector2f(sf::Vector2u{x * tileSize.x, (y + 1) * tileSize.y});
+
+          const auto rect = _tileManager->getTile(tile.ID - 1).textureRect;
+          quad[0].texCoords = sf::Vector2f(sf::Vector2i{rect.left, rect.top});
+          quad[1].texCoords =
+              sf::Vector2f(sf::Vector2i{rect.left + rect.width, rect.top});
+          quad[2].texCoords = sf::Vector2f(
+              sf::Vector2i{rect.left + rect.width, rect.top + rect.height});
+          quad[3].texCoords =
+              sf::Vector2f(sf::Vector2i{rect.left, rect.top + rect.height});
+
+          continue;
+        }
         const auto entityId = static_cast<Domain::Entity::ID>(tile.ID - 1);
         if (entityId >= Domain::Entity::ID::URDLWall &&
             entityId <= Domain::Entity::ID::BallWall) {
@@ -114,33 +148,20 @@ bool Map::load(
         }
       }
     }
+    ++count;
   }
+
+  _layers.erase(std::remove_if(_layers.begin(), _layers.end(),
+                               [](const auto &layer) { return layer.empty(); }),
+                _layers.end());
 
   return true;
 }
 
 void Map::render(sf::RenderWindow &window) {
-  const auto &layers = _map.getLayers();
-  const auto &tileSize = _map.getTileSize();
-  const auto  tileCount = _map.getTileCount();
-
-  for (const auto &layer : layers) {
-    const auto &tileLayer = layer->getLayerAs<tmx::TileLayer>();
-    const auto &tiles = tileLayer.getTiles();
-
-    for (unsigned int y = 0; y < tileCount.y; ++y) {
-      for (unsigned int x = 0; x < tileCount.x; ++x) {
-        const auto &tile = tiles[y * tileCount.x + x];
-        if (tile.ID == 0) { // Empty
-          continue;
-        }
-
-        auto sprite = _tileManager->get(
-            Domain::Entity::ID{static_cast<int>(tile.ID) - 1});
-        sprite.setPosition(static_cast<float>(x * tileSize.x),
-                           static_cast<float>(y * tileSize.y));
-        window.draw(sprite);
-      }
+  for (const auto &layer : _layers) {
+    for (const auto &[texture, vertices] : layer) {
+      window.draw(vertices, texture.get());
     }
   }
 }
