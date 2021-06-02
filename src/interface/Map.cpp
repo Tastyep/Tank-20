@@ -101,44 +101,20 @@ bool Map::load(
 
     for (unsigned int y = 0; y < tileCount.y; ++y) {
       for (unsigned int x = 0; x < tileCount.x; ++x) {
-        const auto &tile = tiles[y * tileCount.x + x];
+        const auto &mapTile = tiles[y * tileCount.x + x];
 
         // No tile
-        if (tile.ID == 0) {
+        if (mapTile.ID == 0) {
           continue;
         }
         // No associated object
-        if (std::find(entityTileIds.begin(), entityTileIds.end(), tile.ID) ==
+        if (std::find(entityTileIds.begin(), entityTileIds.end(), mapTile.ID) ==
             entityTileIds.end()) {
-          const auto &texture = _tileManager->getTile(tile.ID - 1).texture;
-          auto &      vertices = _layers[count][texture];
-          const auto  vertexCount = vertices.getVertexCount();
-
-          vertices.setPrimitiveType(sf::Quads);
-          vertices.resize(vertexCount + 4);
-          sf::Vertex *quad = &vertices[vertexCount];
-
-          quad[0].position =
-              sf::Vector2f(sf::Vector2u{x * tileSize.x, y * tileSize.y});
-          quad[1].position =
-              sf::Vector2f(sf::Vector2u{(x + 1) * tileSize.x, y * tileSize.y});
-          quad[2].position = sf::Vector2f(
-              sf::Vector2u{(x + 1) * tileSize.x, (y + 1) * tileSize.y});
-          quad[3].position =
-              sf::Vector2f(sf::Vector2u{x * tileSize.x, (y + 1) * tileSize.y});
-
-          const auto rect = _tileManager->getTile(tile.ID - 1).textureRect;
-          quad[0].texCoords = sf::Vector2f(sf::Vector2i{rect.left, rect.top});
-          quad[1].texCoords =
-              sf::Vector2f(sf::Vector2i{rect.left + rect.width, rect.top});
-          quad[2].texCoords = sf::Vector2f(
-              sf::Vector2i{rect.left + rect.width, rect.top + rect.height});
-          quad[3].texCoords =
-              sf::Vector2f(sf::Vector2i{rect.left, rect.top + rect.height});
-
+          const auto &tile = _tileManager->getTile(mapTile.ID - 1);
+          _layers[count].addTile(tile, {x, y});
           continue;
         }
-        const auto entityId = static_cast<Domain::Entity::ID>(tile.ID - 1);
+        const auto entityId = static_cast<Domain::Entity::ID>(mapTile.ID - 1);
         if (entityId >= Domain::Entity::ID::URDLWall &&
             entityId <= Domain::Entity::ID::BallWall) {
 
@@ -151,18 +127,16 @@ bool Map::load(
     ++count;
   }
 
-  _layers.erase(std::remove_if(_layers.begin(), _layers.end(),
-                               [](const auto &layer) { return layer.empty(); }),
-                _layers.end());
+  //_layers.erase(std::remove_if(_layers.begin(), _layers.end(),
+  //[](const auto &layer) { return layer.empty(); }),
+  //_layers.end());
 
   return true;
 }
 
 void Map::render(sf::RenderWindow &window) {
   for (const auto &layer : _layers) {
-    for (const auto &[texture, vertices] : layer) {
-      window.draw(vertices, texture.get());
-    }
+    window.draw(layer);
   }
 }
 

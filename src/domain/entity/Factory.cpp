@@ -16,11 +16,14 @@ Factory::Factory(std::shared_ptr<entt::registry>           registry,
       _shapeConfManager(std::move(shapeConfManager)) {}
 
 entt::entity Factory::wall(const Vector2f &pos, Entity::ID id) {
-  const auto &shapeConf = _shapeConfManager->get(id);
-  const auto  bodyId =
-      _world->CreateBody(playrho::d2::BodyConf{}.UseLocation({pos.x, pos.y}));
-  const auto fixtureId = _world->CreateFixture(
-      playrho::d2::FixtureConf{}.UseBody(bodyId).UseShape(shapeConf));
+  const auto bodyId =
+      _world->CreateBody(playrho::d2::BodyConf{}
+                             .UseType(playrho::BodyType::Dynamic)
+                             .UseLocation({pos.x, pos.y}));
+  auto       shapeConf = _shapeConfManager->get(id);
+  const auto fixtureId =
+      _world->CreateFixture(playrho::d2::FixtureConf{}.UseBody(bodyId).UseShape(
+          std::move(shapeConf)));
 
   auto e = _registry->create();
   _registry->emplace<Component::Body>(e, bodyId, fixtureId);

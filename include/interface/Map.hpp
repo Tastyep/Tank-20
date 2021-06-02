@@ -5,6 +5,7 @@
 #include "domain/entity/Factory.hpp"
 #include "domain/physic/ShapeConfManager.hpp"
 #include "interface/Tile.hpp"
+#include "interface/TileLayer.hpp"
 #include "interface/view/View.hpp"
 
 #include <SFML/Graphics/VertexArray.hpp>
@@ -34,12 +35,9 @@ private:
   parseMultiPolygon(const std::vector<tmx::Object> &objects);
 
 private:
-  using Layer =
-      std::unordered_map<std::shared_ptr<sf::Texture>, sf::VertexArray>;
-
   tmx::Map                     _map{};
   std::shared_ptr<TileManager> _tileManager;
-  std::vector<Layer>           _layers;
+  std::vector<TileLayer>       _layers;
 };
 
 } // namespace Interface
