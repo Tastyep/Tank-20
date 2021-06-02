@@ -1,0 +1,19 @@
+---
+Checks:          '
+*,
+
+-cppcoreguidelines-avoid-magic-numbers,
+-cppcoreguidelines-pro-type-union-access,
+
+-abseil-*,
+-altera-*,
+-android-*,
+-fuchsia-*,
+-llvmlibc-*,
+-objc-*,
+-zircon-*,
+-modernize-use-trailing-return-type,
+'
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+FormatStyle:     none

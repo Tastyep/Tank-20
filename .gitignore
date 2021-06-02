@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Build directories
+build
+
+# Generated files
+compile_commands.json
+tags
+.cache

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="left-up" width="50" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="3" nextobjectid="1">
+ <tileset firstgid="1" source="Tank20.tsx"/>
+ <tileset firstgid="25" source="background.tsx"/>
+ <layer id="2" name="background" width="50" height="30">
+  <data encoding="base64" compression="zlib">
+   eJztw0ENAAAMA6HzUf8+J2JfSFg1VVVVVVX19QCx6Z41
+  </data>
+ </layer>
+ <layer id="1" name="Tile Layer 1" width="50" height="30">
+  <data encoding="base64" compression="zlib">
+   eJzt1c0KgCAQBOApIrF6/+ft4kFqlY1k/ZsPljzshEtWHsAeao3WmtrQjiOx/pqtbYY5PPJnqZc5TrzncJn+mkY8V5bZ0rR7uX5kLcz2PKTenuaIv1VLuGqzlp57kd6DVG/Lc1hlS5P+ddpywv2IiIiIiIhGdwOeCwJ6
+  </data>
+ </layer>
+</map>
